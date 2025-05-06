@@ -152,13 +152,12 @@ class Orpheus:
                         constant = None
 
                 if constant:
-                    if constant not in self.module_netloc_constants:
-                        self.module_netloc_constants[constant] = module
-                    elif ModuleFlags.private in module_info.flags: # Replacing public modules with private ones
-                        if ModuleFlags.private in self.module_settings[constant].flags: duplicates.add(constant)
+                    if module in duplicates or constant in self.module_netloc_constants:
+                        # sort the list so the order doesn't matter for duplicate checking
+                        duplicates.add(tuple(sorted([module, self.module_netloc_constants[constant]])))
                     else:
-                        duplicates.add(sorted([module, self.module_netloc_constants[constant]]))
-        if duplicates: raise Exception('Multiple modules installed that connect to the same service names: ' + ', '.join(' and '.join(duplicates)))
+                        self.module_netloc_constants[constant] = module
+        if duplicates: raise Exception('Multiple modules installed that connect to the same service names: ' + ', '.join([' and '.join(pair) for pair in duplicates]))
 
         self.update_module_storage()
 
